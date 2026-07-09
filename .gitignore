@@ -1,0 +1,36 @@
+# Secrets & Environment
+.env
+.env.*
+*.local
+secrets.*
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# IDE / System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Agent files / local media cache
+.agents/
+.gemini/
+.tempmediaStorage/
+artifacts/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.mp4
+*.gif
+*.log
