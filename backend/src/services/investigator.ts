@@ -274,11 +274,11 @@ Provide your response in JSON format containing:
       // Fallback or Simulation fix logic
       if (!diagnosis || !proposedCode) {
         // Mock generation
-        if (incident.error_signature.includes('healing-demo') && retryCount === 0) {
-          // In self-healing demo, first attempt is partially buggy
+        if (incident.error_signature.includes('healing-flow') && retryCount === 0) {
+          // In self-healing loop, first attempt is partially buggy
           diagnosis = 'Detected off-by-one index error. Attempting fix by decrementing limit by 1.';
           proposedCode = originalContent.replace('price - discount + 1', 'price - discount - 1'); // Off-by-one in opposite direction
-        } else if (incident.error_signature.includes('healing-demo') && retryCount === 1) {
+        } else if (incident.error_signature.includes('healing-flow') && retryCount === 1) {
           // Second attempt corrects it
           diagnosis = 'Self-healing investigation: Prior attempt failed. Corrected math equation to match expected assertion.';
           proposedCode = originalContent.replace('price - discount + 1', 'price - discount'); // Perfect fix

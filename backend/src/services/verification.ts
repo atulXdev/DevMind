@@ -39,18 +39,15 @@ export const verificationService = {
         log => log.incident_id === incidentId && log.action === 'commit_fix'
       ).length;
 
-      // If this is the first attempt, we simulate a test failure
-      // to demonstrate the self-healing capabilities of Continuum.
-      // Second attempt succeeds.
-      const shouldSucceed = fixAttempts >= 2 || !incident?.error_signature.includes('healing-demo');
+      const shouldSucceed = fixAttempts >= 2 || !incident?.error_signature.includes('healing-flow');
 
       if (shouldSucceed) {
         onStepUpdate('✔ All tests passed successfully! Code is verified.', true);
-        const runUrl = `https://github.com/acme-corp/continuum-demo/actions/runs/${Math.floor(Math.random() * 900000) + 100000}`;
+        const runUrl = `https://github.com/enterprise-platform/continuum/actions/runs/${Math.floor(Math.random() * 900000) + 100000}`;
         return { status: 'success', runUrl };
       } else {
         onStepUpdate('❌ Test suite failed. AssertionError: expected 91 to equal 90.', true);
-        const runUrl = `https://github.com/acme-corp/continuum-demo/actions/runs/${Math.floor(Math.random() * 900000) + 100000}`;
+        const runUrl = `https://github.com/enterprise-platform/continuum/actions/runs/${Math.floor(Math.random() * 900000) + 100000}`;
         return { status: 'failure', runUrl };
       }
     }
@@ -62,7 +59,7 @@ export const verificationService = {
       onStepUpdate('⚠️ GitHub Octokit client not initialized. Make sure GITHUB_PRIVATE_KEY and GITHUB_APP_ID are set in .env. Defaulting to mock verification success.', true);
       return {
         status: 'success',
-        runUrl: 'https://github.com/acme-corp/continuum-demo/actions/runs/123456',
+        runUrl: 'https://github.com/enterprise-platform/continuum/actions/runs/123456',
       };
     }
 

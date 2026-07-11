@@ -1,6 +1,7 @@
 import { db } from '../db/index.js';
 import { githubService } from './github.js';
 import { Octokit } from 'octokit';
+import { config } from '../config/index.js';
 
 interface SlackMessage {
   author: string;
@@ -49,6 +50,146 @@ export const timeMachineService = {
     let targetRepo = repoFullName;
     let targetFile = filePath;
     let targetLine = lineNumber || 1;
+
+    if (config.simulationMode) {
+      console.log(`TimeMachine: Running in Simulation Mode. Returning high-fidelity mock data.`);
+      
+      const fileLower = targetFile.toLowerCase();
+      if (fileLower.includes('payments.js')) {
+        return {
+          filePath: 'backend/src/payments.js',
+          lineNumber: 42,
+          codeSnippet: 'return price - discount + 1; // Bug here',
+          commit: {
+            sha: 'b8109d43526f78a2e19280cdb3a290bc9837a28f',
+            author: 'Sarah Jenkins',
+            date: new Date(Date.now() - 2 * 24 * 3600000).toISOString(),
+            message: 'fix(payments): implement promotional discount validation rules',
+          },
+          pullRequest: {
+            number: 42,
+            title: 'feat(payments): support new coupon discount and tax rules',
+            description: 'This PR introduces coupon code discount subtraction, but adds an off-by-one error during floating point correction.',
+            url: `https://github.com/${targetRepo}/pull/42`,
+            author: 'Sarah Jenkins',
+            date: new Date(Date.now() - 2 * 24 * 3600000).toISOString(),
+          },
+          slackThread: [
+            {
+              author: 'Atul Singh',
+              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+              message: 'Wait, Sarah, are you sure about the discount subtraction helper? Under some edge cases, it seems to yield 91 instead of 90.',
+              timestamp: new Date(Date.now() - 2 * 24 * 3600000 + 10 * 60000).toISOString()
+            },
+            {
+              author: 'Sarah Jenkins',
+              avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+              message: 'Ah! Good catch. The base correction logic was misaligned. I will push a correction.',
+              timestamp: new Date(Date.now() - 2 * 24 * 3600000 + 20 * 60000).toISOString()
+            }
+          ],
+          incidents: [
+            {
+              id: 'inc-100042',
+              signature: 'AssertionError: expected 91 to equal 90 [healing-flow]',
+              date: new Date(Date.now() - 1 * 24 * 3600000).toISOString(),
+              resolution: 'Automatically resolved and verified by Continuum Self-Healing Loop in PR #42.',
+            }
+          ],
+          verification: {
+            runUrl: `https://github.com/${targetRepo}/actions/runs/987654`,
+            verifiedAt: new Date(Date.now() - 1 * 24 * 3600000 + 5 * 60000).toISOString(),
+            status: 'success',
+          },
+          state: 'verified',
+        };
+      } else if (fileLower.includes('status.js')) {
+        return {
+          filePath: 'backend/src/status.js',
+          lineNumber: 14,
+          codeSnippet: "assert.equal(res, 'failed');",
+          commit: {
+            sha: 'a4f91c92d5be38a19280cdb3a290bc9837a28bc',
+            author: 'John Doe',
+            date: new Date(Date.now() - 5 * 24 * 3600000).toISOString(),
+            message: 'fix(status): change healthcheck assertions',
+          },
+          pullRequest: {
+            number: 10,
+            title: 'fix(status): invert status verification assertion',
+            description: 'Inverts assertion verification checks for service compliance.',
+            url: `https://github.com/${targetRepo}/pull/10`,
+            author: 'John Doe',
+            date: new Date(Date.now() - 5 * 24 * 3600000).toISOString(),
+          },
+          slackThread: [
+            {
+              author: 'Atul Singh',
+              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+              message: 'The linter checks are failing on status.js because of the inverted assertion.',
+              timestamp: new Date(Date.now() - 5 * 24 * 3600000 + 10 * 60000).toISOString()
+            }
+          ],
+          incidents: [
+            {
+              id: 'inc-100010',
+              signature: "AssertionError: expected 'success' to equal 'failed'",
+              date: new Date(Date.now() - 4 * 24 * 3600000).toISOString(),
+              resolution: 'Inverted assertion resolved and verified by Continuum Self-Healing Loop.',
+            }
+          ],
+          verification: {
+            runUrl: `https://github.com/${targetRepo}/actions/runs/123456`,
+            verifiedAt: new Date(Date.now() - 4 * 24 * 3600000 + 5 * 60000).toISOString(),
+            status: 'success',
+          },
+          state: 'verified',
+        };
+      } else {
+        // Generic fallback for any other file
+        return {
+          filePath: targetFile,
+          lineNumber: targetLine,
+          codeSnippet: `// Line ${targetLine} of ${targetFile.split('/').pop()}`,
+          commit: {
+            sha: 'f174b2efa4f91c92d5be38a19280cdb3a290bc98',
+            author: 'Developer',
+            date: new Date(Date.now() - 10 * 24 * 3600000).toISOString(),
+            message: 'chore: general updates and code cleanups',
+          },
+          pullRequest: {
+            number: 15,
+            title: 'chore: core utility optimizations',
+            description: 'Maintains codebase cleanups, refactors helper loops and updates configuration defaults.',
+            url: `https://github.com/${targetRepo}/pull/15`,
+            author: 'Developer',
+            date: new Date(Date.now() - 10 * 24 * 3600000).toISOString(),
+          },
+          slackThread: [
+            {
+              author: 'Atul Singh',
+              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+              message: 'Verified the new config module, it looks good.',
+              timestamp: new Date(Date.now() - 10 * 24 * 3600000 + 30 * 60000).toISOString()
+            }
+          ],
+          incidents: [
+            {
+              id: 'inc-100015',
+              signature: 'ConfigValidation: Invalid port number format',
+              date: new Date(Date.now() - 9 * 24 * 3600000).toISOString(),
+              resolution: 'Resolved and verified by Continuum.',
+            }
+          ],
+          verification: {
+            runUrl: `https://github.com/${targetRepo}/actions/runs/789012`,
+            verifiedAt: new Date(Date.now() - 9 * 24 * 3600000 + 5 * 60000).toISOString(),
+            status: 'success',
+          },
+          state: 'verified',
+        };
+      }
+    }
 
     // 1. Map mock/demo repositories to a real public repo so the presets and defaults work on "actual things"
     if (!targetRepo || targetRepo.includes('acme-corp') || targetRepo.includes('demo') || !targetRepo.includes('/')) {
@@ -201,7 +342,7 @@ export const timeMachineService = {
       prDescription = 'View contributions and pull requests list directly on GitHub.';
     }
 
-    // 7. Fetch real reviews/comments to represent Slack/PR conversations
+    // 7. Fetch real reviews/comments to represent team pull request conversations
     let slackThread = [
       {
         author: prAuthor,

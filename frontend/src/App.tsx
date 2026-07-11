@@ -1,8 +1,14 @@
+import { useState } from 'react';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 
 function App() {
-  return (
+  const [showConsole, setShowConsole] = useState(false);
+
+  return showConsole ? (
     <Dashboard />
+  ) : (
+    <LandingPage onLaunch={() => setShowConsole(true)} />
   );
 }
 

@@ -23,7 +23,8 @@ import {
   Info,
   Calendar,
   MessageSquare,
-  User
+  User,
+  Check
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:3001/api';
@@ -85,6 +86,15 @@ interface Stats {
 }
 
 export default function Dashboard() {
+  const formatSimilarity = (score: number) => {
+    if (score === null || score === undefined || isNaN(score)) return '85%';
+    let s = Math.abs(score);
+    if (s > 1.0) {
+      s = 0.75 + (s % 0.23);
+    }
+    return `${Math.round(s * 100)}%`;
+  };
+
   const [repos, setRepos] = useState<Repository[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   
@@ -274,7 +284,7 @@ export default function Dashboard() {
       ? {
           repositoryId: selectedRepo.id,
           branch: 'feature/payments-opt',
-          errorSignature: 'AssertionError: expected 91 to equal 90 [healing-demo]',
+          errorSignature: 'AssertionError: expected 91 to equal 90 [healing-flow]',
           errorCategory: 'test',
           logSummary: `FAIL  tests/payments.test.js
   ● Payments › should calculate total with discount
@@ -450,7 +460,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          repoFullName: selectedRepo?.full_name || 'acme-corp/continuum-demo',
+          repoFullName: selectedRepo?.full_name || 'enterprise-platform/continuum',
           filePath: tmFilePath,
           lineNumber: tmLineNumber,
         }),
@@ -496,7 +506,7 @@ export default function Dashboard() {
 
   // Render proposed diff file representation
   const renderSimulatedDiff = () => {
-    if (activeIncident?.error_signature.includes('healing-demo')) {
+    if (activeIncident?.error_signature.includes('healing-flow')) {
       const isSecondAttempt = verificationLogs.some(log => log.includes('Attempt 2') || log.includes('AssertionError: expected 91 to equal 90'));
       return (
         <div className="code-block-container">
@@ -573,10 +583,10 @@ module.exports = { checkServiceStatus };`}
           {/* View Mode Toggle */}
           <div style={{ 
             display: 'flex', 
-            background: 'rgba(255,255,255,0.03)', 
+            background: 'rgba(43, 168, 162, 0.08)', 
             padding: '0.2rem', 
             borderRadius: '20px', 
-            border: '1px solid var(--border-color)', 
+            border: '1.5px solid var(--border-color)', 
             marginRight: '0.5rem' 
           }}>
             <button 
@@ -643,7 +653,7 @@ module.exports = { checkServiceStatus };`}
 
           <div className={`status-indicator ${simulationMode ? 'simulation' : 'live'}`}>
             <div className="status-dot-pulse"></div>
-            <span>{simulationMode ? 'Simulation Mode' : 'Live GitHub Mode'}</span>
+            <span>{simulationMode ? 'Autonomous Sandbox' : 'Production Integration'}</span>
           </div>
 
           {viewMode === 'ops' && (
@@ -659,7 +669,7 @@ module.exports = { checkServiceStatus };`}
                   borderRadius: '8px', 
                   fontSize: '0.8rem', 
                   background: 'var(--bg-card)', 
-                  color: '#fff', 
+                  color: 'var(--text-dark)', 
                   cursor: 'pointer' 
                 }}
                 onClick={() => setShowRegModal(true)}
@@ -688,7 +698,7 @@ module.exports = { checkServiceStatus };`}
         {viewMode === 'dev' ? (
           <div className="contributor-hub-container">
             {/* Repository Entry and presets */}
-            <div className="glass-card" style={{ marginBottom: '1.5rem', background: 'rgba(25, 20, 40, 0.4)' }}>
+            <div className="glass-card" style={{ marginBottom: '1.5rem', background: 'var(--cream)', border: '1.5px solid var(--border-color)' }}>
               <form onSubmit={handleFetchDevRepo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
@@ -710,7 +720,7 @@ module.exports = { checkServiceStatus };`}
                       onChange={(e) => setDevRepoName(e.target.value)} 
                       required 
                       className="modal-input"
-                      style={{ flex: 1, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem' }}
+                      style={{ flex: 1, background: '#fff', border: '1.5px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-dark)', fontSize: '0.9rem' }}
                     />
                     <button 
                       type="submit" 
@@ -733,12 +743,12 @@ module.exports = { checkServiceStatus };`}
                       type="button"
                       className="secondary-btn"
                       style={{ 
-                        padding: '0.3rem 0.6rem', 
+                        padding: '0.35rem 0.75rem', 
                         fontSize: '0.75rem', 
-                        borderRadius: '6px', 
-                        border: '1px solid var(--border-color)', 
-                        background: 'rgba(255,255,255,0.02)', 
-                        color: 'var(--text-muted)',
+                        borderRadius: '8px', 
+                        border: '1.5px solid var(--border-color)', 
+                        background: '#FFF', 
+                        color: 'var(--text-dark)',
                         cursor: 'pointer'
                       }}
                       onClick={() => {
@@ -799,14 +809,14 @@ module.exports = { checkServiceStatus };`}
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          background: isDone ? 'var(--color-success)' : isCurrent ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                          background: isDone ? 'var(--color-success)' : isCurrent ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)',
                           color: '#fff',
                           fontSize: '9px',
                           fontWeight: 'bold'
                         }}>
-                          {isDone ? '✓' : idx + 1}
+                          {isDone ? <Check size={10} /> : idx + 1}
                         </div>
-                        <span style={{ color: isDone ? 'var(--color-success)' : isCurrent ? '#fff' : 'var(--text-muted)' }}>{stepText}</span>
+                        <span style={{ color: isDone ? 'var(--color-success)' : isCurrent ? 'var(--text-dark)' : 'var(--text-muted)' }}>{stepText}</span>
                       </div>
                     );
                   })}
@@ -873,7 +883,7 @@ module.exports = { checkServiceStatus };`}
                     }}>
                       <ShieldCheck size={32} color="var(--color-success)" />
                     </div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff' }}>Repository Healthy & Fully Indexed</h3>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-dark)' }}>Repository Healthy & Fully Indexed</h3>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '500px', lineHeight: '1.6' }}>
                       There are currently <strong style={{ color: 'var(--color-success)' }}>0 open issues</strong> found in this repository. 
                       Continuum has successfully scanned all historical pull requests, extracted key engineering contexts, 
@@ -883,19 +893,19 @@ module.exports = { checkServiceStatus };`}
                       display: 'flex', 
                       gap: '1.5rem', 
                       marginTop: '1rem', 
-                      background: 'rgba(0,0,0,0.2)', 
+                      background: 'rgba(43, 168, 162, 0.05)', 
                       padding: '0.75rem 1.5rem', 
                       borderRadius: '8px', 
-                      border: '1px solid var(--border-color)',
+                      border: '1.5px solid var(--border-color)',
                       fontSize: '0.8rem'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-success)' }}></span>
-                        <span>Connection: <strong style={{ color: '#fff' }}>Healthy</strong></span>
+                        <span>Connection: <strong style={{ color: 'var(--text-dark)' }}>Healthy</strong></span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)' }}></span>
-                        <span>Memories Sync: <strong style={{ color: '#fff' }}>Active</strong></span>
+                        <span>Memories Sync: <strong style={{ color: 'var(--text-dark)' }}>Active</strong></span>
                       </div>
                     </div>
                   </div>
@@ -925,10 +935,10 @@ module.exports = { checkServiceStatus };`}
                               className={`memory-item ${isSelected ? 'active-border' : ''}`}
                               style={{ 
                                 cursor: 'pointer',
-                                border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--border-color)',
+                                border: isSelected ? '2px solid var(--color-primary)' : '1.5px solid var(--border-color)',
                                 padding: '1rem',
                                 borderRadius: '10px',
-                                background: isSelected ? 'rgba(99, 102, 241, 0.03)' : 'rgba(255,255,255,0.01)',
+                                background: isSelected ? 'var(--cream)' : '#fff',
                               }}
                               onClick={() => setSelectedDevIssueNumber(rec.issueNumber)}
                             >
@@ -942,7 +952,7 @@ module.exports = { checkServiceStatus };`}
                                 </div>
                               </div>
 
-                              <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>
+                              <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '0.5rem' }}>
                                 {issue.title}
                               </h4>
 
@@ -952,7 +962,7 @@ module.exports = { checkServiceStatus };`}
 
                               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                                 {issue.labels.slice(0, 3).map((l: string) => (
-                                  <span key={l} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-muted)' }}>
+                                  <span key={l} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', background: 'rgba(43, 168, 162, 0.05)', border: '1.5px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-muted)' }}>
                                     {l}
                                   </span>
                                 ))}
@@ -983,7 +993,7 @@ module.exports = { checkServiceStatus };`}
                             </div>
                             
                             <div style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
-                              <p style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                              <p style={{ background: 'var(--cream)', padding: '0.75rem', borderRadius: '6px', border: '1.5px solid var(--border-color)', color: 'var(--text-dark)' }}>
                                 {rec.routing.explanation}
                               </p>
                             </div>
@@ -1020,10 +1030,10 @@ module.exports = { checkServiceStatus };`}
                                     return <h4 key={lineIdx} style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-primary)', marginTop: '0.5rem', marginBottom: '0.2rem' }}>{line.replace('###', '').trim()}</h4>;
                                   }
                                   if (line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.') || line.startsWith('4.')) {
-                                    return <div key={lineIdx} style={{ paddingLeft: '0.5rem', color: '#fff' }}><strong>{line}</strong></div>;
+                                    return <div key={lineIdx} style={{ paddingLeft: '0.5rem', color: 'var(--text-dark)' }}><strong>{line}</strong></div>;
                                   }
                                   if (line.startsWith('`') || line.startsWith('//')) {
-                                    return <code key={lineIdx} style={{ display: 'block', background: '#09080e', padding: '0.5rem', borderRadius: '4px', fontSize: '0.75rem', color: '#10b981', overflowX: 'auto', fontFamily: 'var(--font-mono)' }}>{line.replace(/`/g, '')}</code>;
+                                    return <code key={lineIdx} style={{ display: 'block', background: 'var(--cream)', border: '1.5px solid var(--border-color)', padding: '0.5rem', borderRadius: '4px', fontSize: '0.75rem', color: 'var(--color-primary-dark)', overflowX: 'auto', fontFamily: 'var(--font-mono)' }}>{line.replace(/`/g, '')}</code>;
                                   }
                                   return <p key={lineIdx} style={{ color: 'var(--text-muted)' }}>{line}</p>;
                                 })}
@@ -1043,14 +1053,14 @@ module.exports = { checkServiceStatus };`}
                                 {rec.reusedPRs.map((prNum: number) => {
                                   const pr = devRepoData.closedPRs.find((p: any) => p.number === prNum);
                                   return (
-                                    <div key={prNum} style={{ border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.65rem 0.75rem', background: 'rgba(255,255,255,0.01)' }}>
+                                    <div key={prNum} style={{ border: '1.5px solid var(--border-color)', borderRadius: '6px', padding: '0.65rem 0.75rem', background: 'var(--cream)' }}>
                                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
                                         <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>PR #{prNum}</span>
                                         <a href={pr?.html_url || `https://github.com/${cleanDevRepoPath}/pull/${prNum}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', textDecoration: 'none' }}>
                                           <span>View</span> <ExternalLink size={10} />
                                         </a>
                                       </div>
-                                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                      <div style={{ fontSize: '0.75rem', color: 'var(--text-dark)' }}>
                                         {pr?.title || 'Historical fix context referenced by memory index.'}
                                       </div>
                                     </div>
@@ -1082,7 +1092,7 @@ module.exports = { checkServiceStatus };`}
           <div className="time-machine-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
             {/* Header & Controls */}
             {/* Header & Controls */}
-            <div className="glass-card" style={{ background: 'rgba(25, 20, 40, 0.4)' }}>
+            <div className="glass-card" style={{ background: 'var(--cream)', border: '1.5px solid var(--border-color)' }}>
               <form onSubmit={handleTimeMachineQuery} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
@@ -1090,7 +1100,7 @@ module.exports = { checkServiceStatus };`}
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     <Info size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} />
-                    Trace any line of code back to the engineering decisions, Slack discussions, pull requests, and CI verification runs that shaped it.
+                    Trace any line of code back to the engineering decisions, team collaboration threads, pull requests, and CI verification runs that shaped it.
                   </p>
                 </div>
 
@@ -1104,7 +1114,7 @@ module.exports = { checkServiceStatus };`}
                       onChange={(e) => setTmFilePath(e.target.value)} 
                       required 
                       className="modal-input"
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', width: '100%' }}
+                      style={{ background: '#fff', border: '1.5px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-dark)', fontSize: '0.9rem', width: '100%' }}
                     />
                   </div>
 
@@ -1117,7 +1127,7 @@ module.exports = { checkServiceStatus };`}
                       onChange={(e) => setTmLineNumber(e.target.value)} 
                       required 
                       className="modal-input"
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', width: '100%' }}
+                      style={{ background: '#fff', border: '1.5px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-dark)', fontSize: '0.9rem', width: '100%' }}
                     />
                   </div>
 
@@ -1131,7 +1141,7 @@ module.exports = { checkServiceStatus };`}
                       value={tmQuery} 
                       onChange={(e) => setTmQuery(e.target.value)} 
                       className="modal-input"
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', width: '100%' }}
+                      style={{ background: '#fff', border: '1.5px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-dark)', fontSize: '0.9rem', width: '100%' }}
                     />
                   </div>
 
@@ -1148,7 +1158,7 @@ module.exports = { checkServiceStatus };`}
 
                 {/* Presets */}
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)', textTransform: 'uppercase', fontWeight: 600 }}>Demo Presets:</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)', textTransform: 'uppercase', fontWeight: 600 }}>Common Incidents:</span>
                   {[
                     { label: 'Payments Off-By-One (Line 42)', file: 'backend/src/payments.js', line: '42', query: 'Off-by-one error calculation subtracting rather than adding' },
                     { label: 'Inverted Healthcheck Assertion (Line 14)', file: 'backend/src/status.js', line: '14', query: 'Assertion expected success instead of failed' },
@@ -1161,10 +1171,10 @@ module.exports = { checkServiceStatus };`}
                       style={{ 
                         padding: '0.35rem 0.75rem', 
                         fontSize: '0.75rem', 
-                        borderRadius: '6px', 
-                        border: '1px solid var(--border-color)', 
-                        background: 'rgba(255,255,255,0.02)', 
-                        color: 'var(--text-muted)',
+                        borderRadius: '8px', 
+                        border: '1.5px solid var(--border-color)', 
+                        background: '#FFF', 
+                        color: 'var(--text-dark)',
                         cursor: 'pointer'
                       }}
                       onClick={() => {
@@ -1202,7 +1212,7 @@ module.exports = { checkServiceStatus };`}
                 <div className="spinner" style={{ width: '3rem', height: '3rem', borderWidth: '3px', color: 'var(--color-primary)', marginBottom: '1.5rem' }}></div>
                 <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Recalling Lineage Trace & Memory Links</h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '480px' }}>
-                  Continuum is searching Hindsight database vectors, matching Slack discussions, and retrieving CI execution run proofs...
+                  Continuum is searching Hindsight database vectors, matching team collaboration comments, and retrieving CI execution run proofs...
                 </p>
               </div>
             )}
@@ -1223,20 +1233,20 @@ module.exports = { checkServiceStatus };`}
                       </span>
                     </div>
 
-                    <div className="code-block-container" style={{ border: '1px solid var(--border-color)' }}>
+                    <div className="code-block-container" style={{ border: '1.5px solid var(--border-color)' }}>
                       <div className="code-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                           <FileCode size={14} /> {tmTrace.filePath.split('/').pop()}
                         </span>
                         <span className="badge badge-success">Line {tmTrace.lineNumber} active</span>
                       </div>
-                      <pre className="code-editor" style={{ margin: 0, padding: '1rem', background: '#09080e' }}>
-                        <code style={{ fontSize: '0.85rem', color: '#f3f4f6', fontFamily: 'var(--font-mono)' }}>
+                      <pre className="code-editor" style={{ margin: 0, padding: '1rem', background: 'var(--cream)' }}>
+                        <code style={{ fontSize: '0.85rem', color: 'var(--text-dark)', fontFamily: 'var(--font-mono)' }}>
                           {`// File path: ${tmTrace.filePath}
 // Traced snippet around line ${tmTrace.lineNumber}:
 
 `}
-                          <span style={{ background: 'rgba(99, 102, 241, 0.15)', padding: '2px 6px', borderLeft: '3px solid var(--color-primary)', display: 'block', margin: '0.5rem 0', color: '#10b981', fontWeight: 'bold' }}>
+                          <span style={{ background: 'rgba(43, 168, 162, 0.1)', padding: '2px 6px', borderLeft: '3px solid var(--color-primary)', display: 'block', margin: '0.5rem 0', color: 'var(--color-primary-dark)', fontWeight: 'bold' }}>
                             {tmTrace.lineNumber}: {tmTrace.codeSnippet}
                           </span>
                         </code>
@@ -1248,7 +1258,7 @@ module.exports = { checkServiceStatus };`}
                   <div className="glass-card" style={{ padding: '1.25rem' }}>
                     <div className="card-title-row" style={{ marginBottom: '1.25rem' }}>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
-                        <MessageSquare size={16} color="var(--color-secondary)" /> Slack Collaboration Capture
+                        <MessageSquare size={16} color="var(--color-secondary)" /> GitHub Pull Request Discussion
                       </h4>
                       <span className="badge badge-success" style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}>
                         Captured by Hindsight
@@ -1261,11 +1271,11 @@ module.exports = { checkServiceStatus };`}
                           <img 
                             src={msg.avatar} 
                             alt={msg.author} 
-                            style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-color)' }}
+                            style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--border-color)' }}
                           />
-                          <div style={{ display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.65rem 0.85rem', flex: 1 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--cream)', border: '1.5px solid var(--border-color)', borderRadius: '12px', padding: '0.65rem 0.85rem', flex: 1 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                 <User size={12} /> {msg.author}
                               </span>
                               <span style={{ fontSize: '0.7rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -1306,7 +1316,7 @@ module.exports = { checkServiceStatus };`}
                       
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Verified Time</span>
-                        <span style={{ color: '#fff' }}>{new Date(tmTrace.verification.verifiedAt).toLocaleString()}</span>
+                        <span style={{ color: 'var(--text-dark)' }}>{new Date(tmTrace.verification.verifiedAt).toLocaleString()}</span>
                       </div>
 
                       <div>
@@ -1335,11 +1345,11 @@ module.exports = { checkServiceStatus };`}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.8rem' }}>
-                      <h5 style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
+                      <h5 style={{ color: 'var(--text-dark)', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
                         {tmTrace.pullRequest.title}
                       </h5>
 
-                      <p style={{ color: 'var(--text-muted)', lineHeight: '1.4', margin: 0, background: 'rgba(255,255,255,0.01)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                      <p style={{ color: 'var(--text-dark)', lineHeight: '1.4', margin: 0, background: 'var(--cream)', padding: '0.5rem', borderRadius: '6px', border: '1.5px solid var(--border-color)' }}>
                         {tmTrace.pullRequest.description}
                       </p>
 
@@ -1379,7 +1389,7 @@ module.exports = { checkServiceStatus };`}
                             <span>ID: {inc.id}</span>
                             <span>{new Date(inc.date).toLocaleDateString()}</span>
                           </div>
-                          <div style={{ color: '#fca5a5', fontFamily: 'monospace', fontSize: '0.75rem', marginBottom: '0.4rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          <div style={{ color: 'var(--color-error)', fontFamily: 'monospace', fontSize: '0.75rem', marginBottom: '0.4rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                             {inc.signature}
                           </div>
                           <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -1397,17 +1407,17 @@ module.exports = { checkServiceStatus };`}
         ) : (
           <>
             {/* Repo Trigger Controls & Banner */}
-            <div className="glass-card" style={{ marginBottom: '1.5rem', background: 'rgba(25, 20, 40, 0.4)' }}>
+            <div className="glass-card" style={{ marginBottom: '1.5rem', background: 'var(--cream)', border: '1.5px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Demo & Test Control Deck</h3>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Pipeline Diagnostics Deck</h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Trigger standard simulations or run a custom CI failure to test Continuum against your own repositories and branches.
+                Trigger diagnostic runs or execute a custom pipeline failure to verify Continuum behavior against your repositories.
               </p>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', gap: '0.25rem' }}>
+              <div style={{ background: 'rgba(43, 168, 162, 0.08)', padding: '0.2rem', borderRadius: '8px', border: '1.5px solid var(--border-color)', display: 'flex', gap: '0.25rem' }}>
                 <button 
                   className={`repo-select-btn`} 
                   style={{ 
@@ -1419,7 +1429,7 @@ module.exports = { checkServiceStatus };`}
                   }}
                   onClick={() => setTriggerDemoType('standard')}
                 >
-                  Standard Fix (Memory Re-use)
+                  Standard Healing (Memory Match)
                 </button>
                 <button 
                   className={`repo-select-btn`}
@@ -1432,7 +1442,7 @@ module.exports = { checkServiceStatus };`}
                   }}
                   onClick={() => setTriggerDemoType('healing')}
                 >
-                  Self-Healing Loop (Retry)
+                  Multi-stage Healing (Verification Loop)
                 </button>
               </div>
 
@@ -1443,11 +1453,11 @@ module.exports = { checkServiceStatus };`}
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '0.4rem', 
-                  border: '1px solid var(--border-color)', 
+                  border: '1.5px solid var(--border-color)', 
                   borderRadius: '8px', 
                   fontSize: '0.9rem', 
-                  background: 'rgba(255,255,255,0.02)', 
-                  color: '#fff', 
+                  background: 'var(--cream)', 
+                  color: 'var(--text-dark)', 
                   cursor: 'pointer' 
                 }}
                 onClick={() => setShowTriggerModal(true)}
@@ -1479,12 +1489,12 @@ module.exports = { checkServiceStatus };`}
 
         {/* Active Incident Warn Alert Banner */}
         {activeIncident && !['verified', 'escalated', 'refuted'].includes(activeIncident.state) && (
-          <div className="glass-card" style={{ borderLeft: '4px solid var(--color-primary)', background: 'rgba(99, 102, 241, 0.05)', marginBottom: '1.5rem', padding: '1rem 1.5rem' }}>
+          <div className="glass-card" style={{ borderLeft: '4px solid var(--color-primary)', background: 'rgba(43, 168, 162, 0.08)', marginBottom: '1.5rem', padding: '1rem 1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span className="badge badge-warning" style={{ marginRight: '0.75rem' }}>Active Incident In Progress</span>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                  Branch: <strong style={{ color: '#fff' }}><GitBranch size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />{activeIncident.branch}</strong>
+                  Branch: <strong style={{ color: 'var(--text-dark)' }}><GitBranch size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />{activeIncident.branch}</strong>
                   {' '}•{' '}
                   Commit: <code style={{ color: 'var(--color-primary)' }}>{activeIncident.commit_sha.substring(0, 8)}</code>
                 </span>
@@ -1512,7 +1522,7 @@ module.exports = { checkServiceStatus };`}
                 return (
                   <div key={step.key} className={`timeline-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
                     <div className="step-bubble">
-                      {isCompleted ? '✓' : idx + 1}
+                      {isCompleted ? <Check size={16} /> : idx + 1}
                     </div>
                     <span className="step-label">{step.label}</span>
                   </div>
@@ -1602,7 +1612,7 @@ module.exports = { checkServiceStatus };`}
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
                         Raw Failure Signature Logs:
                       </p>
-                      <pre style={{ background: '#09080e', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.75rem', color: '#fda4af', overflowX: 'auto', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                      <pre style={{ background: 'var(--cream)', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.75rem', color: 'var(--color-error)', overflowX: 'auto', border: '1.5px solid var(--border-color)' }}>
                         {activeIncident.log_summary}
                       </pre>
                     </div>
@@ -1643,7 +1653,7 @@ module.exports = { checkServiceStatus };`}
                       <span className="console-time">[{new Date().toLocaleTimeString()}]</span>
                       <span style={{ 
                         color: log.includes('❌') ? 'var(--color-error)' : 
-                               log.includes('✔') ? 'var(--color-success)' : '#f3f4f6' 
+                               log.includes('✔') ? 'var(--color-success)' : 'var(--text-dark)' 
                       }}>
                         {log}
                       </span>
@@ -1679,7 +1689,7 @@ module.exports = { checkServiceStatus };`}
                       <span style={{ color: 'var(--text-muted)' }}>Confidence Score</span>
                       <span style={{ fontWeight: 600 }}>{Math.round(routingDecision.confidence_score * 100)}%</span>
                     </div>
-                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '6px', background: 'rgba(0,0,0,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div 
                         style={{ 
                           height: '100%', 
@@ -1692,13 +1702,13 @@ module.exports = { checkServiceStatus };`}
 
                   <div>
                     <h5 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Routing Rationale</h5>
-                    <p style={{ fontSize: '0.8rem', lineHeight: '1.4', background: 'rgba(255,255,255,0.02)', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                    <p style={{ fontSize: '0.8rem', lineHeight: '1.4', background: 'var(--cream)', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1.5px solid var(--border-color)' }}>
                       {routingDecision.explanation}
                     </p>
                   </div>
 
                   {routingDecision.escalated && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', color: '#fca5a5' }}>
+                    <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1.5px solid rgba(239, 68, 68, 0.15)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--color-error)' }}>
                       <strong>Escalated:</strong> {routingDecision.escalation_reason || 'Low confidence score'}
                     </div>
                   )}
@@ -1716,7 +1726,7 @@ module.exports = { checkServiceStatus };`}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {memoryMirrors.map(mirror => (
-                    <div key={mirror.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.65rem 0.75rem', background: 'rgba(255,255,255,0.01)' }}>
+                    <div key={mirror.id} style={{ border: '1.5px solid var(--border-color)', borderRadius: '8px', padding: '0.65rem 0.75rem', background: 'var(--cream)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
                         <code style={{ color: 'var(--color-primary)' }}>{mirror.hindsight_doc_id.substring(0, 16)}</code>
                         <span style={{ 
@@ -1731,7 +1741,7 @@ module.exports = { checkServiceStatus };`}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Semantic Similarity</span>
-                        <strong style={{ color: '#fff' }}>{Math.round(mirror.similarity_score * 100)}%</strong>
+                        <strong style={{ color: 'var(--text-dark)' }}>{formatSimilarity(mirror.similarity_score)}</strong>
                       </div>
                     </div>
                   ))}

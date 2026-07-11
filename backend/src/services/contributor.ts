@@ -5,7 +5,7 @@ import { db } from '../db/index.js';
 import OpenAI from 'openai';
 
 let openai: OpenAI | null = null;
-if (config.hindsight.llmApiKey) {
+if (config.hindsight.llmApiKey && !config.simulationMode) {
   try {
     const isGemini = config.hindsight.llmProvider === 'gemini' || config.hindsight.llmProvider === 'google';
     openai = new OpenAI({
@@ -126,7 +126,7 @@ export const contributorService = {
       // Update the cleanRepo variable to parsed owner/repo format
       cleanRepo = cleanFullName;
 
-      if (octokit) {
+      if (octokit && !config.simulationMode) {
         // First verify repository exists and is accessible
         try {
           await octokit.rest.repos.get({ owner, repo });
@@ -191,25 +191,22 @@ export const contributorService = {
     }
 
     // Determine whether to use mock fallback
-    // If the user has supplied a personal access token, we prioritize fetching live data,
-    // only falling back to mocks if no token is configured or if the repo name is not a valid owner/repo.
-    const hasToken = !!process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim().length > 0;
-    const isMockRepo = 
-      cleanRepo.toLowerCase().includes('deepmind-agent') || 
-      !cleanRepo.includes('/') ||
-      (!hasToken && (
-        cleanRepo.toLowerCase().includes('react') || 
-        cleanRepo.toLowerCase().includes('next.js')
-      ));
+    const isMockRepo = !cleanRepo.includes('/') || config.simulationMode;
 
-    // ONLY fallback to mock if the user explicitly requested a mock repo, or if it failed and the format didn't have owner/repo
-    if (isMockRepo || (fetchError && !cleanRepo.includes('/'))) {
+    if (fetchError) {
+      if (config.simulationMode) {
+        console.log(`Failed to fetch live data for "${cleanRepo}". Falling back to mock dataset because SIMULATION_MODE is active.`);
+        const mockData = this.getMockRepoData(cleanRepo);
+        openIssues = mockData.openIssues;
+        closedPRs = mockData.closedPRs;
+      } else {
+        throw new Error(`Failed to fetch repository "${cleanRepo}" from GitHub: ${fetchErrorMessage}. Please check if the repository exists, is public, and verify your GITHUB_TOKEN.`);
+      }
+    } else if (isMockRepo) {
       console.log(`Using mock dataset for repo: ${cleanRepo}`);
       const mockData = this.getMockRepoData(cleanRepo);
       openIssues = mockData.openIssues;
       closedPRs = mockData.closedPRs;
-    } else if (fetchError) {
-      throw new Error(`Failed to fetch repository "${cleanRepo}" from GitHub: ${fetchErrorMessage}. Please check if the repository exists, is public, and verify your GITHUB_TOKEN.`);
     }
 
     // Ensure repository exists in the database
