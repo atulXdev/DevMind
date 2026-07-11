@@ -51,7 +51,9 @@ export const timeMachineService = {
     let targetFile = filePath;
     let targetLine = lineNumber || 1;
 
-    if (config.simulationMode) {
+    const isMockRepo = !targetRepo || targetRepo.includes('acme-corp') || targetRepo.includes('demo') || !targetRepo.includes('/');
+
+    if (config.simulationMode && isMockRepo) {
       console.log(`TimeMachine: Running in Simulation Mode. Returning high-fidelity mock data.`);
       
       const fileLower = targetFile.toLowerCase();
@@ -266,17 +268,19 @@ export const timeMachineService = {
 
     // 6. Fetch associated Pull Request
     const isExpress = targetRepo === 'expressjs/express';
-    let prNumber = isExpress ? 6464 : 1;
+    let prNumber = isExpress ? 6464 : 0;
     let prTitle = isExpress 
       ? 'Improve error logging by logging full error object' 
-      : 'Optimize application logic and handle connection variables';
+      : 'Direct Commit / Main Branch';
     let prDescription = isExpress
       ? 'Improve error logging by logging full error object to help debug issues.'
-      : 'Addresses CI issues and scales configuration variables.';
-    let prUrl = `https://github.com/${targetRepo}/pull/${prNumber}`;
+      : 'No Pull Request is directly associated with this commit.';
+    let prUrl = isExpress 
+      ? `https://github.com/${targetRepo}/pull/6464` 
+      : `https://github.com/${targetRepo}/commit/${commitSha}`;
     let prAuthor = commitAuthor;
     let prDate = commitDate;
-    let hasRealPR = false;
+    let hasRealPR = isExpress;
 
     try {
       const prsRes = await client.rest.repos.listPullRequestsAssociatedWithCommit({
@@ -343,39 +347,38 @@ export const timeMachineService = {
     }
 
     // 7. Fetch real reviews/comments to represent team pull request conversations
-    let slackThread = [
-      {
-        author: prAuthor,
-        avatar: prAuthor && prAuthor !== 'Sarah Jenkins' ? `https://github.com/${prAuthor}.png` : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
-        message: prNumber > 0 
-          ? `I investigated this issue and resolved it in PR #${prNumber}.`
-          : `I investigated this file lineage and confirmed the resolved changes on main branch.`,
-        timestamp: new Date(new Date(prDate).getTime() - 20 * 60000).toISOString()
-      },
-      {
-        author: 'engineer-bot',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
-        message: 'Makes sense, matches my local testing. Let us get it verified in CI.',
-        timestamp: new Date(new Date(prDate).getTime() - 10 * 60000).toISOString()
-      }
-    ];
+    let slackThread: SlackMessage[] = [];
 
     try {
-      const commentsRes = await client.rest.issues.listComments({
-        owner,
-        repo,
-        issue_number: prNumber,
-      });
-      if (commentsRes.data.length > 0) {
-        slackThread = commentsRes.data.slice(0, 3).map((comment) => {
-          const avatar = comment.user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80';
-          return {
+      if (prNumber > 0) {
+        const commentsRes = await client.rest.issues.listComments({
+          owner,
+          repo,
+          issue_number: prNumber,
+        });
+        if (commentsRes.data.length > 0) {
+          slackThread = commentsRes.data.slice(0, 5).map((comment) => ({
             author: comment.user?.login || 'Contributor',
-            avatar: avatar,
+            avatar: comment.user?.avatar_url || 'https://github.com/identicons/default.png',
             message: comment.body || '',
             timestamp: comment.created_at,
-          };
-        });
+          }));
+        } else {
+          // Try to fetch review comments
+          const reviewComments = await client.rest.pulls.listReviewComments({
+            owner,
+            repo,
+            pull_number: prNumber,
+          });
+          if (reviewComments.data.length > 0) {
+            slackThread = reviewComments.data.slice(0, 5).map((comment) => ({
+              author: comment.user?.login || 'Contributor',
+              avatar: comment.user?.avatar_url || 'https://github.com/identicons/default.png',
+              message: comment.body || '',
+              timestamp: comment.created_at,
+            }));
+          }
+        }
       }
     } catch (e) {
       console.warn(`TimeMachine: Could not fetch PR comments:`, e);
