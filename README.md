@@ -298,21 +298,3 @@ npm run dev
 ```
 *The Vite application runs at `http://localhost:5173`.*
 
----
-
-## 💡 Pitch Demo Scenarios
-
-Continuum includes **Demo Presets** that automatically map mock files to live public contexts on `expressjs/express` to showcase production capabilities:
-
-1.  **Payments Off-By-One (Line 42)**
-    *   **Context**: Maps to `lib/application.js` (Line 20) in `expressjs/express`.
-    *   **Action**: Evaluates similarity against vector bank, identifies the off-by-one bug, and outputs code changes.
-    *   **Result**: Returns real commit lineages, links to active PR `#6464`, and pulls actual comments from live GitHub contributors (`bjohansebas`, `myselfsiddharth`, `danizavtz`) complete with dynamic profile pictures.
-2.  **Inverted Healthcheck Assertion (Line 14)**
-    *   **Context**: Maps to `lib/request.js` (Line 35) in `expressjs/express`.
-3.  **DB Connection Outage (Line 12)**
-    *   **Context**: Maps to `lib/response.js` (Line 50) in `expressjs/express`.
-
-When scanning repositories in **Contributor Hub**:
-*   Scan `google/deepmind-agent` (a custom mock preset) to preview detailed Blueprints and local testing plans.
-*   Scan any live public repository (e.g. `facebook/react`, `vercel/next.js`, or custom user repositories) to ingest real-time GitHub issues, vector-index past PR histories into Hindsight, and retrieve dynamic AI Blueprints.
